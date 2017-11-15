@@ -45,6 +45,8 @@ DEFINE_string(anno_type, "classification",
     "The type of annotation {classification, detection}.");
 DEFINE_string(label_type, "xml",
     "The type of annotation file format.");
+DEFINE_string(root_dir, "",
+    "The root directory which contains the images and annotations.");
 DEFINE_string(label_map_file, "",
     "A file with LabelMap protobuf message.");
 DEFINE_bool(check_label, false,
@@ -75,7 +77,7 @@ int main(int argc, char** argv) {
   gflags::SetUsageMessage("Convert a set of images and annotations to the "
         "leveldb/lmdb format used as input for Caffe.\n"
         "Usage:\n"
-        "    convert_annoset [FLAGS] ROOTFOLDER/ LISTFILE DB_NAME\n");
+        "    convert_annoset [FLAGS] LISTFILE DB_NAME\n");
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   if (argc < 4) {
@@ -93,8 +95,8 @@ int main(int argc, char** argv) {
   const string label_map_file = FLAGS_label_map_file;
   const bool check_label = FLAGS_check_label;
   std::map<std::string, int> name_to_label;
-
-  std::ifstream infile(argv[2]);
+  
+  std::ifstream infile(argv[1]);
   std::vector<std::pair<std::string, boost::variant<int, std::string> > > lines;
   std::string filename;
   int label;
@@ -131,11 +133,14 @@ int main(int argc, char** argv) {
 
   // Create new DB
   scoped_ptr<db::DB> db(db::GetDB(FLAGS_backend));
-  db->Open(argv[3], db::NEW);
+  db->Open(argv[2], db::NEW);
   scoped_ptr<db::Transaction> txn(db->NewTransaction());
 
   // Storing to db
-  std::string root_folder(argv[1]);
+  string root_folder = FLAGS_root_dir;
+  int root_folder_size = root_folder.size();
+  if(root_folder_size != 0 && root_folder[root_folder_size-1] != '/')
+    root_folder += "/";
   AnnotatedDatum anno_datum;
   Datum* datum = anno_datum.mutable_datum();
   int count = 0;
