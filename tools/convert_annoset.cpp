@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
         "    convert_annoset [FLAGS] LISTFILE DB_NAME\n");
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  if (argc < 4) {
+  if (argc < 3) {
     gflags::ShowUsageWithFlagsRestrict(argv[0], "tools/convert_annoset");
     return 1;
   }
